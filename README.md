@@ -268,19 +268,19 @@ plt.show()
 ```python
 # Визуализация распределения количества грейдов по размерам компаний
 sns.countplot(data=data, x="company_size", hue="experience_level")
-plt.savefig('images/salary_chart8.png', dpi=300, bbox_inches='tight')
+plt.savefig('images/salary_chart7.png', dpi=300, bbox_inches='tight')
 plt.show()
 
 # Анализ распределения зарплат для каждого грейда в разрезе размеров компаний
 sns.boxplot(data=data, x="salary_in_usd", y="experience_level", hue='company_size')
-plt.savefig('images/salary_chart9.png', dpi=300, bbox_inches='tight')
+plt.savefig('images/salary_chart8.png', dpi=300, bbox_inches='tight')
 plt.show()
 ```
 
 #### Визуализация структуры грейдов и зарплат:
 <p align="center">
-  <img src="images/salary_chart8.png" width="49%" alt="Распределение грейдов по размерам компаний" />
-  <img src="images/salary_chart9.png" width="49%" alt="Диаграмма размаха по грейдам и размерам" />
+  <img src="images/salary_chart7.png" width="49%" alt="Распределение грейдов по размерам компаний" />
+  <img src="images/salary_chart8.png" width="49%" alt="Диаграмма размаха по грейдам и размерам" />
 </p>
 
 ---
@@ -299,23 +299,133 @@ plt.show()
 
 > 💡 **Ключевой инсайт:** Стратегия найма жестко привязана к масштабу бизнеса: средние компании (`M`) делают ставку на скорость и массово привлекают готовых `Senior`-специалистов, в то время как крупные корпорации (`L`) смещают фокус на долгосрочное развитие и нанимают больше `Middle`-инженеров с перспективой внутреннего роста. Позиция `TeamLead` остается штучной и наименее востребованной на рынке для всех типов компаний, а в сегменте `S` найм распределен ровно, без явных приоритетов.
 
+<details>
+<summary>🏢 Шаг 7: Выбор масштаба компании для Middle и Senior (Поиск ответов на Вопрос 3)</summary>
+
+На этом этапе проводится глубокое исследование влияния размера компании на уровень дохода отдельно для специалистов уровней Middle (`MI`) и Senior (`SE`) с применением трансформации Бокса-Кокса, проверки гомогенности дисперсий (тест Левена), дисперсионного анализа (ANOVA) и критерия Тьюки.
+
+### 1. Исследование и нормализация данных для грейда Middle
+Для устранения асимметрии распределение зарплат мидлов трансформируется с помощью функции `boxcox`, после чего проверяется на графиках плотности.
+
+```python
+# Фильтрация данных по грейду Middle и подготовка типа данных для трансформации
+middle = data[data.experience_level == "MI"].copy()
+middle['salary_in_usd'] = middle['salary_in_usd'].astype('float64')
+
+# Исходное распределение зарплат Middle
+sns.histplot(data=middle, x="salary_in_usd", kde=True)
+plt.savefig('images/salary_chart9.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# Нормализация данных через Box-Cox трансформацию
+tr_data, l = stats.boxcox(middle.salary_in_usd)
+
+# Распределение после трансформации Бокса-Кокса
+sns.histplot(tr_data, kde=True)
+plt.savefig('images/salary_chart10.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# Запись трансформированных данных обратно в датафрейм
+middle.loc[:, ('salary_in_usd')] = tr_data
+```
+
+#### Визуализация распределения Middle до и после Box-Cox:
+<p align="center">
+  <img src="images/salary_chart9.png" width="49%" alt="Исходное распределение Middle" />
+  <img src="images/salary_chart10.png" width="49%" alt="Распределение Middle после Box-Cox" />
+</p>
+
+---
+
+### 2. Проверка условий и проведение ANOVA для грейда Middle
+Проверяется равенство дисперсий тестом Левена и запускается одномерный дисперсионный анализ для оценки глобальных различий между компаниями `S`, `M` and `L`.
+
+```python
+# Оценка объема выборки
+middle.shape  # Маленькая выборка
+
+# Разделение зарплат по группам размеров компаний
+middle_s = middle[middle.company_size == 'S'].salary_in_usd
+middle_m = middle[middle.company_size == 'M'].salary_in_usd
+middle_l = middle[middle.company_size == 'L'].salary_in_usd
+
+# Тест Левена на гомогенность дисперсий
+stats.levene(middle_s, middle_m, middle_l)  # p-value > 0.05, не можем отклонить H0 о равенстве дисперсий
+
+# Построение линейной модели и расчет таблицы ANOVA
+one_way = ols('salary_in_usd ~ company_size', middle).fit()
+anova_lm(one_way)  # Отвергаем H0 гипотезу: разница в зарплатах между размерами компаний значима
+```
+
+---
+
+### 3. Множественные сравнения (Пост-хок тест Тьюки) для Middle
+Так как ANOVA показал наличие значимых различий, запускается попарный критерий Тьюки для точечного выбора лучшей организации.
+
+```python
+# Попарные сравнения размеров компаний для грейда Middle
+print(pairwise_tukeyhsd(endog=middle.salary_in_usd, alpha=0.05, groups=middle['company_size']))
+```
+*(Результат теста показывает, что если стоит выбор между организациями, Мидлу лучше выбрать L или M размер).*
+
+---
+
+### 4. Статистический анализ для грейда Senior
+Проводится аналогичное исследование влияния размера компаний на доходы более опытных специалистов уровня `SE`.
+
+```python
+# Фильтрация данных по грейду Senior
+senior = data[data.experience_level == "SE"]
+
+# Визуализация распределения зарплат Senior
+sns.histplot(data=senior, x="salary_in_usd", kde=True)
+plt.savefig('images/salary_chart11.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# Дисперсионный анализ (ANOVA) для грейда Senior
+one_way = ols('salary_in_usd ~ company_size', senior).fit()
+anova_lm(one_way)  # p-value > 0.05, нет статистически значимых различий в зарплате между размерами компаний
+```
+
+#### Визуализация плотности зарплат Senior:
+![Распределение зарплат Senior](images/salary_chart11.png)
+
+---
+
+### 5. Финальное сравнение размаха зарплат (Boxplot)
+Для итоговой демонстрации результатов строятся сравнительные диаграммы размаха для обеих исследуемых групп.
+
+```python
+# Диаграмма размаха зарплат для грейда Senior
+sns.boxplot(data=senior, x='salary_in_usd', y='company_size', hue='company_size')
+plt.savefig('images/salary_chart12.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# Диаграмма размаха зарплат для грейда Middle
+sns.boxplot(data=middle, x='salary_in_usd', y='company_size', hue='company_size')
+plt.savefig('images/salary_chart13.png', dpi=300, bbox_inches='tight')
+plt.show()
+```
+
+#### Итоговые Boxplot графики для Senior и Middle:
+<p align="center">
+  <img src="images/salary_chart12.png" width="49%" alt="Зарплаты Senior по размерам компаний" />
+  <img src="images/salary_chart13.png" width="49%" alt="Зарплаты Middle по размерам компаний" />
+</p>
+
+---
+
+### 📋 Выводы на основе статистических тестов:
+1. **Для Middle-специалистов:** Выявлены математически доказанные различия в доходах. Специалисту грейда `Middle` гораздо выгоднее работать в компании размеров `M` и `L`. Тест Тьюки подтверждает ограничение доходов в компаниях размера `S`.
+2. **Для Senior-специалистов:** Значение p-value в ANOVA оказалось больше 0.05. Зарплата `Senior`-специалиста статистически не зависит от размера компании, им не принципиально в какую организацию по масштабу устраиваться.
+
+---
 
 
+</details>
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+> 💡 **Ключевой инсайт:** Выбор размера компании критически важен на этапе карьерного роста **`Middle`**, так как средние (`M`) и крупные (`L`) предприятия предлагают значимо бóльшие бюджеты, помогающие преодолеть зарплатный потолок маленьких фирм. При переходе на уровень **`Senior`** зависимость от масштаба бизнеса полностью стирается — высококлассные инженеры получают одинаково высокий доход вне зависимости от того, работают они в стартапе (`S`) или огромной корпорации (`L`).
 
 <details>
 <summary>🛠️ <b>Инструкция по развертыванию проекта (Нажмите, чтобы раскрыть)</b></summary>
