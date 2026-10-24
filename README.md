@@ -1,27 +1,114 @@
 ![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
 ![Pandas](https://img.shields.io/badge/Pandas-2C2D72?style=for-the-badge&logo=pandas&logoColor=white)
 ![Seaborn](https://shields.io)
+![SciPy](https://img.shields.io/badge/SciPy-654FF0?style=for-the-badge&logo=SciPy&logoColor=white)
 
 <!--![Plotly](https://img.shields.io/badge/Plotly-239120?style=for-the-badge&logo=plotly&logoColor=white)
-![SciPy](https://img.shields.io/badge/SciPy-654FF0?style=for-the-badge&logo=SciPy&logoColor=white)
+
 -->
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # Job Market Analysis
 
 Проект для анализа рынка труда и вакансий. Находится в разработке.
+
+
+
+
+<details>
+<summary>📦 Шаг 1: Окружение и импорт библиотек</summary>
+
+Для выполнения исследования в проекте используются библиотеки `pandas`, `seaborn`, `scipy` и `statsmodels`.
+
+### Код импорта:
+```python
+# Загрузка, обработка таблиц и подготовка выборок данных
+import pandas as pd
+
+# Визуализация данных, построение графиков распределений и боксплотов
+import seaborn as sns
+
+# Модуль базовых статистических тестов библиотеки SciPy
+from scipy import stats
+
+# Построение линейной модели для ANOVA (дисперсионного анализа)
+from statsmodels.formula.api import ols
+
+# Расчет таблицы дисперсионного анализа (ANOVA) по построенной модели
+from statsmodels.stats.anova import anova_lm
+
+# Инструменты statsmodels (для построения графиков квантилей QQ-plot)
+import statsmodels.api as sm
+
+# Проведение критерия Тьюки (Post-hoc анализ для попарных сравнений)
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+
+# Функции для корреляционного анализа (коэффициенты Пирсона, Спирмена, Кендалла)
+from scipy.stats import pearsonr, spearmanr, kendalltau
+```
+
+### Установка пакетов:
+```bash
+pip install pandas seaborn scipy statsmodels
+```
+</details>
+
+
+<details>
+<summary>❓ Шаг 2: Ключевые вопросы исследования</summary>
+
+В рамках проекта необходимо проанализировать данные и ответить на следующие аналитические вопросы:
+
+1. **Факторы зарплат:** Что сильнее всего влияет на зарплатную вилку вакансий в сфере Data Science?
+2. **Распределение грейдов:** Как распределены позиции (грейды) сотрудников в компаниях разного размера? Какие выводы можно сделать на основе этого распределения?
+3. **Выбор компании:** В компанию какого размера выгоднее устраиваться кандидатам уровней *Middle* и *Senior*?
+
+---
+### 🛠️ Методология анализа
+Для поиска обоснованных ответов на эти вопросы в работе последовательно выполняются:
+* **Описательный анализ данных** (расчет базовых статистик, мер центральной тенденции и разброса).
+* **Корреляционный анализ** (оценка тесноты и направления связей между числовыми признаками).
+* **Дисперсионный анализ (ANOVA)** (сравнение средних зарплат и выявление статистически значимых различий между группами факторов).
+</details>
+
+<details>
+<summary>📊 Шаг 3: Загрузка и предобработка данных</summary>
+
+На этом этапе выполняется загрузка датасета и очистка от технического столбца с индексами с помощью параметра `index_col=0`.
+
+### Код загрузки:
+```python
+# Читаем файл и сразу убираем первый безымянный столбец с индексами
+data = pd.read_csv("datas/ds_salaries.csv", index_col=0)
+
+# Проверяем структуру загруженных данных перед тестами
+data.head()
+```
+
+### Структура загруженных данных (`data.head()`):
+
+| work_year | experience_level | employment_type | job_title | salary | salary_currency | salary_in_usd | employee_residence | company_location | company_size |
+| :---: | :---: | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| 2020 | MI | FT | Data Scientist | 70000 | EUR | 79833 | DE | DE | L |
+| 2020 | SE | FT | Machine Learning Scientist | 260000 | USD | 260000 | JP | JP | S |
+| 2020 | SE | FT | Big Data Engineer | 85000 | GBP | 109024 | GB | GB | M |
+| 2020 | MI | FT | Product Data Analyst | 20000 | USD | 20000 | HN | HN | S |
+| 2020 | SE | FT | Machine Learning Engineer | 150000 | USD | 150000 | US | US | L |
+
+</details>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 для сохранения картинки 
 plt.savefig('images/salary_chart.png', dpi=300, bbox_inches='tight')
