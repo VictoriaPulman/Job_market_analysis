@@ -262,27 +262,6 @@ plt.show()
 
 
 
-
-
-
-
-
-
-
-
-
-для сохранения картинки 
-plt.savefig('images/salary_chart.png', dpi=300, bbox_inches='tight')
-
-для вставки картинки
-![График зарплат](images/salary_chart.png)
-
-> 💡 **Ключевой инсайт:** Вывод....
-
-
-
-
-
 <details>
 <summary>🛠️ <b>Инструкция по развертыванию проекта (Нажмите, чтобы раскрыть)</b></summary>
 
