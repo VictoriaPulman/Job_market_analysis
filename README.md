@@ -1,6 +1,23 @@
-![Python](https://shields.io)
-![Pandas](https://shields.io)
+![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
+![Pandas](https://img.shields.io/badge/Pandas-2C2D72?style=for-the-badge&logo=pandas&logoColor=white)
 ![Seaborn](https://shields.io)
+
+<!--![Plotly](https://img.shields.io/badge/Plotly-239120?style=for-the-badge&logo=plotly&logoColor=white)
+![SciPy](https://img.shields.io/badge/SciPy-654FF0?style=for-the-badge&logo=SciPy&logoColor=white)
+-->
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Job Market Analysis
 
